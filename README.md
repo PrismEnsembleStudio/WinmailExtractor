@@ -4,11 +4,11 @@
 
 **メールの添付を、端末内で、必要なものだけ。** インストーラー不要のEXEを1つ置くだけで使えます。
 
-**[初回プレビュー版をダウンロード](https://github.com/PrismEnsembleStudio/WinmailExtractor/releases/tag/v1.0.0-preview.1)** · [Release一覧](https://github.com/PrismEnsembleStudio/WinmailExtractor/releases) · [検証結果](docs/VALIDATION.md)
+**[修正版プレビューをダウンロード](https://github.com/PrismEnsembleStudio/WinmailExtractor/releases/tag/v1.0.0-preview.2)** · [Release一覧](https://github.com/PrismEnsembleStudio/WinmailExtractor/releases) · [検証結果](docs/VALIDATION.md)
 
 **[EXEを直接ダウンロード（ビルド不要）](https://github.com/PrismEnsembleStudio/WinmailExtractor/raw/refs/heads/main/dist/win-x64/WinmailExtractor.exe)** — リポジトリ内の `dist/win-x64` にも配布EXEとSHA-256を置いています。
 
-> 初回公開はプレビュー版です。Windows 10 x64でビルド・自動テスト46件・EXE単体の起動を確認しています。Windows 11実機での右クリック連携、対話操作、実際のDPI変更は確認が残っています。不具合報告・改善提案を歓迎します。
+> プレビュー版です。Windows 10 x64でビルド・自動テスト50件・EXE単体の起動を確認しています。preview.2では通常のPDF添付を破損扱いするケースを修正し、提供された実ファイルで抽出バイトの一致を確認しました。Windows 11実機での右クリック連携、対話操作、実際のDPI変更は確認が残っています。不具合報告・改善提案を歓迎します。
 
 ![Winmail Extractorの起動画面](docs/images/main.png)
 

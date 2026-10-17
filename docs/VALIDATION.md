@@ -1,6 +1,6 @@
 # 実装・検証結果
 
-初期検証：2026年10月17日。公開用圧縮EXEの再ビルド・テスト：2026年10月18日（日本時間）。Windows 10 x64 / 10.0.19045、.NET SDK 10.0.301で実施。
+初期検証：2026年10月17日。preview.2の互換性修正・再ビルド・テスト：2026年10月18日（日本時間）。Windows 10 x64 / 10.0.19045、.NET SDK 10.0.301で実施。
 
 ## 実装済み
 
@@ -15,15 +15,17 @@
 
 |項目|結果・証跡|
 |---|---|
-|Releaseビルド|成功、警告0・エラー0。`artifacts/publish.log`|
-|単体・統合テスト|46件成功・失敗0・スキップ0。`artifacts/test-results/release-tests.trx`|
+|Releaseビルド|成功、警告0・エラー0。`artifacts/publish-preview2.log`|
+|単体・統合テスト|50件成功・失敗0・スキップ0。`artifacts/test-results/release-tests.trx`|
 |合成TNEF|Unicode名と旧形式CP932名、複数添付、元バイトとSHA-256一致。MimeKit高水準APIでも合成入力を交差確認|
 |異常入力|非TNEF、切断、チェックサム不一致、不正長、リソース上限、キャンセル、500個の乱数入力で制御されたエラー|
 |添付の扱い|名前なし・ゼロバイトを保持。埋め込みメールの未対応理由を通知。本文や圧縮RTFを添付へ混入させない|
+|補助情報の互換性|使用しない文字列・Unicode・バイナリの単一値プロパティに名前付きMAPIプロパティが続くケースを合成データで再現して修正。不正な補助データ長は引き続き拒否|
+|提供された実ファイル|端末内だけで通常のPDF添付1件を抽出。TNEF属性から独立に取得した元バイトとの完全一致を確認。実ファイル・添付内容・ファイル名は公開・コミットしていない|
 |安全な保存|相対・絶対・UNC名、予約名、制御文字、表示方向制御、長い日本語名、重複名、既存使用中ファイル、12件の同時衝突|
 |保存先の保護|ジャンクションへの保存拒否。ハンドル保持中のディレクトリ移動拒否。検証で取得権限不足を検出し、GENERIC_READで修正後に再確認|
 |右クリック登録ロジック|一時専用レジストリ領域で登録・検出・移動状態・解除・隣接キー維持・他者所有キー保護を確認。本番のShellキーは変更していない|
-|WPF実装|コンパイル済み画面を描画。読み込み4件、選択解除時の保存無効化、全選択、保存、エラー状態を確認|
+|WPF実装|コンパイル済み画面を描画。合成入力4件の選択・保存・エラー状態を確認。preview.2では提供された実入力についてViewModelの読み込み・選択・保存を実行し、保存バイトも照合。マウス操作試験とは区別|
 |画面の目視|初期・一覧・設定・最小サイズ、長い日本語名、実行形式の注意表示をPNGで確認。`artifacts/verification-final`|
 |描画倍率|100%・125%・150%・200%でPNG生成。OS自体のDPI切り替え試験とは別|
 |依存関係|NuGetで直接・間接の依存を監査し、3プロジェクトに既知の脆弱性の検出なし。`artifacts/dependency-audit.json`。発行時の復元も警告なし|
@@ -33,10 +35,10 @@
 
 ## 配布版
 
-- **公開用EXE：`dist/win-x64/WinmailExtractor.exe`**。発行元は `artifacts/public-release/win-x64` で、発行出力はEXE1個のみ。DLL・外部PDB・設定ファイルは不要。`dist` はGit管理に含めている。
+- **公開用EXE：`dist/win-x64/WinmailExtractor.exe`**（v1.0.0-preview.2）。発行元は `artifacts/release-preview2/win-x64` で、発行出力はEXE1個のみ。DLL・外部PDB・設定ファイルは不要。`dist` はGit管理に含めている。
 - Release / win-x64 / self-contained / single-file、.NETおよびWindows Desktop Runtime **10.0.13**を同梱。Trim無効、デバッグ情報は埋め込み。単一EXEの内部圧縮を有効化。
-- サイズ：62,100,304 bytes（約59.2 MiB）。公開用ビルド・テスト・発行ログは `artifacts/publish-public.log`。配布物の照合情報は `dist/win-x64/SHA256SUMS.txt`。
-- SHA-256：`500D179F2F5AB75E2222AE6DBC4409FA6DA7BDBECC3617FB7549F0728A8D42F5`。
+- サイズ：62,110,349 bytes（約59.2 MiB）。公開用ビルド・テスト・発行ログは `artifacts/publish-preview2.log`。配布物の照合情報は `dist/win-x64/SHA256SUMS.txt`。
+- SHA-256：`A1EA5D481DFFDEBB131DFC2102C978B08E11BD621F2584EC442C769A64F288A6`。
 - EXEだけを `artifacts/portable-smoke/日本語 & (portable)-<GUID>/` へコピーし、5ケース（無引数、正常TNEF、不正DAT、不存在ファイル、複数引数）でInputIdle到達とプロセス継続を確認。その後、自分で起動したプロセスを終了。`artifacts/portable-smoke/results.json`。
 - 子プロセスの `DOTNET_ROOT` / `DOTNET_ROOT_X64` は存在しないフォルダーへ向けた状態で試験。ホストトレースで **self-contained / 10.0.13 / bundle startup** と `%TEMP%\.net` 内への展開を確認。実際にランタイム未導入の別PCでの試験とは区別する。
 - このスモーク試験は起動維持の確認であり、別プロセスの表示内容・ダイアログ・Explorerの操作は検証していない。内容の抽出・選択・保存は別の自動テストとWPF検証ツールで確認した。
@@ -47,7 +49,7 @@
 - マウスでの実ドロップ、OSのファイル・フォルダー選択ダイアログ、保存先Explorerの起動を通した操作。実装とWPF内の状態遷移は確認済みだが、対話操作の実機試験は未実施。
 - Windows表示設定を125%・150%・200%へ変えた試験、複数DPIモニター間移動、キーボードだけでの一連の対話操作。
 - .NETランタイム未導入の新規Windows環境での試験。
-- 実際の業務メールやOutlook等から得たTNEFによる受入試験。
+- 提供ファイル1件以外の、さまざまなOutlook・送信環境で作成された実TNEFによる受入試験。
 - ACLで拒否される実フォルダー・実入力、物理的な空き容量不足、ディスク切断、ウイルス対策ソフト・SmartScreenの表示。
 - EXE署名は未実施。
 

@@ -76,16 +76,23 @@ public sealed class TnefExtractionService(ExtractionLimits? limits = null)
                                     current.Name = ReadName(prop);
                                     break;
                                 case TnefPropertyId.AttachFilename:
-                                    current.Name ??= ReadName(prop);
+                                    string shortName = ReadName(prop);
+                                    current.Name ??= shortName;
                                     break;
                                 case TnefPropertyId.AttachMethod:
                                     current.Method = (TnefAttachMethod)prop.ReadValueAsInt32();
                                     break;
                                 case TnefPropertyId.AttachData:
                                     if (prop.PropertyTag.ValueTnefType != TnefPropertyType.Binary || prop.ValueCount != 1)
+                                    {
                                         current.UnsupportedData = true;
+                                        SkipUnusedSingleValue(prop);
+                                    }
                                     else
                                         current.Data = ReadData(prop);
+                                    break;
+                                default:
+                                    SkipUnusedSingleValue(prop);
                                     break;
                             }
                         }
@@ -105,7 +112,7 @@ public sealed class TnefExtractionService(ExtractionLimits? limits = null)
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
-            throw new ExtractionException("TNEFの内容が破損しているか、対応していない形式です。送信元に通常の添付形式での再送を依頼してください。", ex);
+            throw new ExtractionException("TNEFの添付情報を読み取れませんでした。ファイルが破損しているか、このアプリが未対応の形式です。", ex);
         }
 
         string ReadName(TnefPropertyReader property)
@@ -123,6 +130,18 @@ public sealed class TnefExtractionService(ExtractionLimits? limits = null)
             total += property.RawValueLength;
             if (total > limits.MaxTotalBytes) throw new ExtractionException("添付ファイルの合計展開サイズが上限を超えています。");
             return property.ReadValueAsBytes();
+        }
+
+        void SkipUnusedSingleValue(TnefPropertyReader property)
+        {
+            if (property.ValueCount != 1) return;
+            // Consume ignored values explicitly. MimeKit 4.18.1's implicit skip can
+            // mistake a following named-property tag for a variable-value length.
+            // A bounded raw stream avoids decoding/allocating unrelated metadata
+            // and retains strict length, checksum and property validation.
+            using var value = property.GetRawValueReadStream();
+            Span<byte> buffer = stackalloc byte[4096];
+            while (value.Read(buffer) > 0) cancellationToken.ThrowIfCancellationRequested();
         }
 
         void Complete()

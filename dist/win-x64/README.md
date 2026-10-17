@@ -4,11 +4,11 @@
 
 **[EXEを直接ダウンロード](https://github.com/PrismEnsembleStudio/WinmailExtractor/raw/refs/heads/main/dist/win-x64/WinmailExtractor.exe)**
 
-ダウンロードして任意のローカルフォルダーに置き、起動してください。インストーラー、.NET SDK、追加のDLLは不要です。初回プレビュー版で、未署名です。
+ダウンロードして任意のローカルフォルダーに置き、起動してください。インストーラー、.NET SDK、追加のDLLは不要です。v1.0.0-preview.2の修正版プレビューで、未署名です。
 
 ファイルを選択して添付を確認し、必要なものだけ保存します。右クリック連携は右上の設定から登録・解除してください。Windows 11では「その他のオプションを確認」側を想定しています。
 
-サイズは62,100,304 bytes（約59.2 MiB）。単一EXE内部の圧縮を有効にしています。.NET/WPFは実行時にWindowsの一時フォルダーへ展開されます。
+サイズは62,110,349 bytes（約59.2 MiB）。単一EXE内部の圧縮を有効にしています。.NET/WPFは実行時にWindowsの一時フォルダーへ展開されます。
 
 SHA-256は同梱の `SHA256SUMS.txt` を参照してください。
 

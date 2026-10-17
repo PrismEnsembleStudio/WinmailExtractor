@@ -49,6 +49,53 @@ public sealed class ExtractionTests
         using var fixture = new TnefFixture();
         Assert.Empty(new TnefExtractionService().Extract(fixture.ToArray()).Attachments);
     }
+
+    [Theory]
+    [InlineData(TnefPropertyType.String8)]
+    [InlineData(TnefPropertyType.Unicode)]
+    [InlineData(TnefPropertyType.Binary)]
+    public void UnusedVariableMetadataBeforeNamedPropertyDoesNotRejectAttachment(TnefPropertyType type)
+    {
+        using var fixture = new TnefFixture();
+        byte[] payload = Encoding.ASCII.GetBytes("%PDF-1.7 synthetic attachment");
+        fixture.Add("document.pdf", payload, mapi: false);
+        using var buffer = new MemoryStream();
+        using var writer = new BinaryWriter(buffer);
+        writer.Write(4);
+        writer.Write(((uint)TnefPropertyId.AttachMethod << 16) | (uint)TnefPropertyType.Long);
+        writer.Write(1);
+        TnefFixture.WriteVariable(writer, TnefPropertyId.DisplayName, type, [1, 2, 3, 0]);
+        // A named MAPI property sets the high bit of the following tag. No real mail data.
+        writer.Write(0x812d000bu); // named Boolean property
+        writer.Write(new Guid("00020329-0000-0000-c000-000000000046").ToByteArray());
+        writer.Write(0); // numeric named-property identifier
+        writer.Write(0x1234);
+        writer.Write(0); // Boolean value, padded to four bytes
+        TnefFixture.WriteVariable(writer, TnefPropertyId.AttachLongFilename, TnefPropertyType.Unicode,
+            Encoding.Unicode.GetBytes("document.pdf\0"));
+        fixture.Attribute(TnefAttributeLevel.Attachment, TnefAttributeTag.Attachment, buffer.ToArray());
+
+        var result = new TnefExtractionService().Extract(fixture.ToArray());
+        var attachment = Assert.Single(result.Attachments);
+        Assert.Equal("document.pdf", attachment.FileName);
+        Assert.Equal(payload, attachment.Content);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void InvalidUnusedMetadataLengthIsStillRejected()
+    {
+        using var fixture = new TnefFixture();
+        fixture.Add("document.pdf", [1, 2, 3]);
+        using var buffer = new MemoryStream();
+        using var writer = new BinaryWriter(buffer);
+        writer.Write(1);
+        writer.Write(((uint)TnefPropertyId.DisplayName << 16) | (uint)TnefPropertyType.Binary);
+        writer.Write(1);
+        writer.Write(int.MaxValue);
+        fixture.Attribute(TnefAttributeLevel.Attachment, TnefAttributeTag.Attachment, buffer.ToArray());
+        Assert.Throws<ExtractionException>(() => new TnefExtractionService().Extract(fixture.ToArray()));
+    }
     [Fact] public void NamelessAndEmptyFileArePreserved()
     {
         using var fixture = new TnefFixture();
