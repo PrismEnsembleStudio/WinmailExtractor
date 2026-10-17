@@ -1,0 +1,41 @@
+name: 不具合を報告する
+description: 動作上の問題を報告します。実メール・添付内容・個人情報は投稿しないでください。
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        実際のメール、winmail.dat、添付内容、個人情報、認証情報は投稿しないでください。
+        問題の説明と、可能であれば合成データでの再現方法を共有してください。
+  - type: input
+    id: version
+    attributes:
+      label: アプリのバージョン
+      placeholder: v1.0.0-preview.1
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windowsのバージョンと表示倍率
+      placeholder: Windows 11 x64 / 150%
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 再現手順
+      description: 実データの名前や内容を含めず、操作手順を書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作と実際の動作
+    validations:
+      required: true
+  - type: textarea
+    id: message
+    attributes:
+      label: エラーメッセージ・補足
+      description: 個人情報や実ファイルのパスは伏せてください。

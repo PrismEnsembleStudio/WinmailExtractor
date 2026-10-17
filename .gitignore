@@ -1,0 +1,7 @@
+**/bin/
+**/obj/
+.vs/
+.reference/
+artifacts/
+TestResults/
+# dist/ is intentionally tracked: portable EXE downloads for users who do not build.
